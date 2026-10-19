@@ -1,0 +1,64 @@
+import json
+
+from django.conf import settings
+from django.contrib import messages
+from django.http import FileResponse, Http404, HttpResponse
+from django.shortcuts import redirect, render
+
+import storage
+from forms import BookForm, UploadForm
+
+
+def index(request):
+    files = storage.list_book_files()
+    total = sum(len(f["books"]) for f in files)
+    return render(request, "index.html", {"files": files, "total_books": total})
+
+
+def add_book(request):
+    form = BookForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        storage.save_books([form.cleaned_data])
+        messages.success(request, "Книга сохранена в JSON-файл.")
+        return redirect("index")
+    return render(request, "add.html", {"form": form})
+
+
+def upload(request):
+    form = UploadForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        uploaded = form.cleaned_data["file"]
+        _, target = storage.new_file_path()      # оригинальное имя игнорируем
+        with open(target, "xb") as fh:
+            for chunk in uploaded.chunks():
+                fh.write(chunk)
+        books, errors = storage.parse_json_file(target)
+        if errors:
+            target.unlink(missing_ok=True)       # невалидный файл удаляем
+            messages.error(request, "Файл невалиден и был удалён: " + " ".join(errors[:5])
+                           + (" ..." if len(errors) > 5 else ""))
+        else:
+            messages.success(request, f"Файл загружен. Книг в файле: {len(books)}.")
+            return redirect("index")
+    return render(request, "upload.html", {"form": form})
+
+
+def download(request, file_id):
+    if not storage.FILE_ID_RE.match(file_id):
+        raise Http404
+    target = settings.BOOKS_DIR / f"{file_id}.json"
+    if not target.is_file():
+        raise Http404("Файл не найден")
+    return FileResponse(open(target, "rb"), as_attachment=True,
+                        filename=f"books_{file_id[:8]}.json", content_type="application/json")
+
+
+def export_all(request):
+    books = [b for f in storage.list_book_files() for b in f["books"]]
+    if not books:
+        messages.info(request, "Экспортировать нечего: на сервере нет ни одной книги.")
+        return redirect("index")
+    body = json.dumps({"books": books}, ensure_ascii=False, indent=2)
+    resp = HttpResponse(body, content_type="application/json; charset=utf-8")
+    resp["Content-Disposition"] = 'attachment; filename="all_books.json"'
+    return resp
