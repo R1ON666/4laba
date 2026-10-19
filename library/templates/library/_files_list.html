@@ -1,0 +1,31 @@
+{% if not files %}
+  <div class="alert alert-info">На сервере нет ни одного JSON-файла. Добавьте книгу через форму или загрузите файл.</div>
+{% else %}
+  <p class="text-muted">Файлов: {{ files|length }}, книг всего: {{ total_books }}</p>
+  {% for f in files %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-2">
+      <span><b>{{ f.id }}.json</b>
+        <small class="text-muted">{{ f.size }} байт &middot; {{ f.modified|date:"d.m.Y H:i" }}</small></span>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'download' f.id %}">Скачать</a>
+    </div>
+    <div class="card-body p-0">
+      {% if f.errors %}
+        <div class="alert alert-danger m-3">Файл повреждён или невалиден:
+          <ul class="mb-0">{% for e in f.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+      {% else %}
+        <div class="table-responsive">
+        <table class="table table-striped table-sm mb-0 align-middle">
+          <thead class="table-light"><tr><th>Название</th><th>Автор</th><th>Год</th><th>ISBN</th><th>Жанр</th><th>Стр.</th><th>Описание</th></tr></thead>
+          <tbody>
+          {% for b in f.books %}
+            <tr><td>{{ b.title }}</td><td>{{ b.author }}</td><td>{{ b.year }}</td><td>{{ b.isbn }}</td>
+                <td>{{ b.genre }}</td><td>{{ b.pages }}</td><td>{{ b.description }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}

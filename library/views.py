@@ -14,9 +14,17 @@ from .services import duplicate_message, find_duplicate
 
 
 def index(request):
-    files = storage.list_book_files()
-    total = sum(len(f["books"]) for f in files)
-    return render(request, "library/index.html", {"files": files, "total_books": total})
+    source = request.GET.get("source", "db")
+    if source not in ("db", "files"):
+        source = "db"
+    context = {"source": source}
+    if source == "files":
+        files = storage.list_book_files()
+        context.update(files=files, total_books=sum(len(f["books"]) for f in files))
+    else:
+        books = Book.objects.all()
+        context.update(books=books, total_books=len(books))
+    return render(request, "library/index.html", context)
 
 
 def add_book(request):

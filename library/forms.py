@@ -8,6 +8,7 @@ from django.core.validators import FileExtensionValidator
 
 from .models import GENRE_CHOICES
 
+
 def validate_isbn(value):
     """Проверка ISBN-10 / ISBN-13 с контрольной суммой (дефисы и пробелы допустимы)."""
     s = re.sub(r"[-\s]", "", str(value)).upper()

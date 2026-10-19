@@ -1,0 +1,12 @@
+{% for b in books %}
+<tr>
+  <td class="fw-semibold">{{ b.title }}</td>
+  <td>{{ b.author }}</td>
+  <td>{{ b.year }}</td>
+  <td class="text-nowrap">{{ b.isbn }}</td>
+  <td>{{ b.genre }}</td>
+  <td>{{ b.pages }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="6" class="text-center text-muted py-4">В базе данных пока нет книг</td></tr>
+{% endfor %}
