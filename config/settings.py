@@ -49,7 +49,13 @@ TEMPLATES = [{
     },
 }]
 
-DATABASES = {}  # БД появится в одном из следующих коммитов
+# SQLite. Путь можно переопределить (на хостинге храните файл в постоянной папке)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.environ.get("DJANGO_DB_PATH", BASE_DIR / "db.sqlite3"),
+    }
+}
 
 # Папка с JSON-файлами и ограничения
 BOOKS_DIR = Path(os.environ.get("BOOKS_DIR", BASE_DIR / "data" / "books"))
