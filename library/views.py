@@ -4,13 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.db import IntegrityError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from . import storage
-from .forms import AddBookForm, UploadForm
+from .forms import AddBookForm, BookForm, UploadForm
 from .models import Book
 from .services import duplicate_message, find_duplicate
 
@@ -106,3 +106,39 @@ def book_search(request):
         books = [b for b in books if any(query in getattr(b, f).casefold() for f in SEARCH_FIELDS)]
     html = render_to_string("library/_db_rows.html", {"books": books}, request=request)
     return JsonResponse({"count": len(books), "html": html})
+
+
+BOOK_FIELDS = ("title", "author", "year", "isbn", "genre", "pages", "description")
+
+
+def book_edit(request, pk):
+    """Редактирование записи из БД с той же валидацией, что и при добавлении."""
+    book = get_object_or_404(Book, pk=pk)
+    form = BookForm(request.POST or None, initial={f: getattr(book, f) for f in BOOK_FIELDS})
+    if request.method == "POST" and form.is_valid():
+        duplicate = find_duplicate(form.cleaned_data, exclude_pk=book.pk)
+        if duplicate:
+            form.add_error(None, duplicate_message(duplicate, outcome="Изменения не сохранены."))
+        else:
+            for name, value in form.cleaned_data.items():
+                setattr(book, name, value)
+            try:
+                book.save()
+            except IntegrityError:
+                form.add_error("isbn", "Книга с таким ISBN уже есть в базе данных.")
+            else:
+                messages.success(request, f"Изменения сохранены: «{book.title}».")
+                return redirect(f"{reverse('index')}?source=db")
+    return render(request, "library/edit.html", {"form": form, "book": book})
+
+
+@require_POST
+def book_delete(request, pk):
+    """Удаление записи. Только POST (защищено CSRF); для AJAX отвечает JSON."""
+    book = get_object_or_404(Book, pk=pk)
+    message = f"Книга «{book.title}» удалена."
+    book.delete()
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": message})
+    messages.success(request, message)
+    return redirect(f"{reverse('index')}?source=db")

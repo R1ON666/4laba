@@ -27,7 +27,7 @@ def find_duplicate(data, exclude_pk=None):
     return None
 
 
-def duplicate_message(duplicate):
+def duplicate_message(duplicate, outcome="Запись не добавлена."):
     book, reason = duplicate
     return (f"Такая книга уже есть в базе данных (совпадает: {reason}): "
-            f"«{book.title}», {book.author}, {book.year}. Запись не добавлена.")
+            f"«{book.title}», {book.author}, {book.year}. {outcome}")

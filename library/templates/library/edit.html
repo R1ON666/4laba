@@ -1,0 +1,14 @@
+{% extends "library/base.html" %}
+{% block title %}Изменить книгу{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Изменить книгу</h1>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+    {% for field in form %}{% include "library/_field.html" %}{% endfor %}
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    <a class="btn btn-outline-secondary" href="{% url 'index' %}?source=db">Отмена</a>
+  </form>
+</div></div>
+{% endblock %}

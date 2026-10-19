@@ -12,7 +12,7 @@
 {% if source == "files" %}
   {% include "library/_files_list.html" %}
 {% else %}
-  <div id="db-app" data-search-url="{% url 'book_search' %}">
+  <div id="db-app" data-search-url="{% url 'book_search' %}" data-csrf="{{ csrf_token }}">
     <div class="input-group mb-3">
       <span class="input-group-text">&#128269;</span>
       <input type="search" id="search-input" class="form-control" maxlength="100" autocomplete="off"
@@ -21,9 +21,23 @@
     <p class="text-muted small">Найдено книг: <span id="counter">{{ total_books }}</span></p>
     <div class="card shadow-sm"><div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light"><tr><th>Название</th><th>Автор</th><th>Год</th><th>ISBN</th><th>Жанр</th><th>Стр.</th></tr></thead>
+        <thead class="table-light"><tr><th>Название</th><th>Автор</th><th>Год</th><th>ISBN</th><th>Жанр</th><th>Стр.</th><th></th></tr></thead>
         <tbody id="db-rows">{% include "library/_db_rows.html" %}</tbody>
       </table>
+    </div></div>
+  </div>
+
+  <div class="modal fade" id="delete-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5">Удалить книгу?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">Книга «<span id="delete-title"></span>» будет удалена из базы данных без возможности восстановления.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-danger" id="delete-confirm">Удалить</button>
+      </div>
     </div></div>
   </div>
 {% endif %}
@@ -71,6 +85,36 @@
   input.addEventListener("input", function () {  // debounce 300 мс
     clearTimeout(timer);
     timer = setTimeout(search, 300);
+  });
+
+  // --- удаление: модальное подтверждение + AJAX POST с CSRF-токеном ---
+  const modal = new bootstrap.Modal(document.getElementById("delete-modal"));
+  let deleteUrl = null;
+
+  tbody.addEventListener("click", function (event) {   // делегирование: строки перерисовываются поиском
+    const button = event.target.closest("[data-delete-url]");
+    if (!button) return;
+    deleteUrl = button.dataset.deleteUrl;
+    document.getElementById("delete-title").textContent = button.dataset.title;
+    modal.show();
+  });
+
+  document.getElementById("delete-confirm").addEventListener("click", async function () {
+    if (!deleteUrl) return;
+    try {
+      const response = await fetch(deleteUrl, {
+        method: "POST",
+        headers: {"X-CSRFToken": app.dataset.csrf, "X-Requested-With": "XMLHttpRequest"},
+      });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const data = await response.json();
+      showAlert(data.message, "success");
+    } catch (err) {
+      showAlert("Не удалось удалить книгу. Обновите страницу и попробуйте ещё раз.", "danger");
+    }
+    deleteUrl = null;
+    modal.hide();
+    search();                                          // обновляем таблицу и счётчик
   });
 })();
 </script>
