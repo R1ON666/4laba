@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Добавить книгу</h1>
+<div class="card">
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+    {{ field.errors }}
+  {% endfor %}
+  <button type="submit">Сохранить в JSON</button>
+</form>
+</div>
+{% endblock %}

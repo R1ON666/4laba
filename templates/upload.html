@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Загрузка JSON-файла</h1>
+<div class="card">
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+  {{ form.file }}
+  <div class="help">Допустимо: объект книги, список книг или {"books": [...]}. Максимум 1 МБ.</div>
+  {{ form.file.errors }}
+  <button type="submit">Загрузить</button>
+</form>
+</div>
+{% endblock %}

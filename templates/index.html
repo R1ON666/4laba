@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Книги из JSON-файлов</h1>
+{% if not files %}
+  <div class="card">На сервере нет ни одного JSON-файла. Добавьте книгу через форму или загрузите файл.</div>
+{% else %}
+  <p class="muted">Файлов: {{ files|length }}, книг всего: {{ total_books }}</p>
+  {% for f in files %}
+  <div class="card">
+    <b>Файл {{ f.id }}.json</b>
+    <span class="muted">({{ f.size }} байт, изменён {{ f.modified|date:"d.m.Y H:i" }})</span>
+    <a href="{% url 'download' f.id %}">скачать</a>
+    {% if f.errors %}
+      <div class="msg error">Файл повреждён или невалиден:
+        <ul>{% for e in f.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+    {% else %}
+      <table>
+        <tr><th>Название</th><th>Автор</th><th>Год</th><th>ISBN</th><th>Жанр</th><th>Стр.</th><th>Описание</th></tr>
+        {% for b in f.books %}
+        <tr><td>{{ b.title }}</td><td>{{ b.author }}</td><td>{{ b.year }}</td><td>{{ b.isbn }}</td>
+            <td>{{ b.genre }}</td><td>{{ b.pages }}</td><td>{{ b.description }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

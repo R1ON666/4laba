@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Библиотека{% endblock %}</title>
+<style>
+ body{font-family:system-ui,Arial,sans-serif;max-width:960px;margin:0 auto;padding:16px;background:#f5f6f8;color:#222}
+ nav{display:flex;gap:16px;flex-wrap:wrap;padding:12px 0;border-bottom:2px solid #ddd;margin-bottom:20px}
+ nav a{text-decoration:none;color:#1a56c4;font-weight:600}
+ .card{background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+ .msg{padding:10px 14px;border-radius:6px;margin-bottom:10px}
+ .success{background:#e3f6e8;color:#1a6b34}.error{background:#fde6e6;color:#a11}.info{background:#e6effd;color:#14498f}
+ table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top;font-size:14px}
+ th{background:#eef0f4}
+ label{display:block;font-weight:600;margin-top:12px}
+ input,select,textarea{width:100%;padding:8px;box-sizing:border-box;border:1px solid #bbb;border-radius:4px;font:inherit}
+ button{margin-top:16px;padding:8px 16px;background:#1a56c4;color:#fff;border:0;border-radius:4px;cursor:pointer;font:inherit}
+ .errorlist{color:#a11;margin:4px 0 0;padding-left:18px;font-size:14px}
+ .help{color:#666;font-size:13px}.muted{color:#777;font-size:13px}
+</style></head><body>
+<nav>
+ <a href="{% url 'index' %}">Все книги</a>
+ <a href="{% url 'add' %}">Добавить книгу</a>
+ <a href="{% url 'upload' %}">Загрузить JSON</a>
+ <a href="{% url 'export_all' %}">Экспорт всех (JSON)</a>
+</nav>
+{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</body></html>
