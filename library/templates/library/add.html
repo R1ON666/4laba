@@ -1,16 +1,13 @@
 {% extends "library/base.html" %}
+{% block title %}Добавить книгу{% endblock %}
 {% block content %}
-<h1>Добавить книгу</h1>
-<div class="card">
-<form method="post" novalidate>
-  {% csrf_token %}
-  {% for field in form %}
-    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-    {{ field }}
-    {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
-    {{ field.errors }}
-  {% endfor %}
-  <button type="submit">Сохранить в JSON</button>
-</form>
-</div>
+<h1 class="h3 mb-3">Добавить книгу</h1>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+    {% for field in form %}{% include "library/_field.html" %}{% endfor %}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+  </form>
+</div></div>
 {% endblock %}

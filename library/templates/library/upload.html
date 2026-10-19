@@ -1,14 +1,14 @@
 {% extends "library/base.html" %}
+{% block title %}Загрузка JSON{% endblock %}
 {% block content %}
-<h1>Загрузка JSON-файла</h1>
-<div class="card">
-<form method="post" enctype="multipart/form-data" novalidate>
-  {% csrf_token %}
-  <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
-  {{ form.file }}
-  <div class="help">Допустимо: объект книги, список книг или {"books": [...]}. Максимум 1 МБ.</div>
-  {{ form.file.errors }}
-  <button type="submit">Загрузить</button>
-</form>
-</div>
+<h1 class="h3 mb-3">Загрузка JSON-файла</h1>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% include "library/_field.html" with field=form.file %}
+    <div class="form-text mb-3">Допустимо: объект книги, список книг или <code>{"books": [...]}</code>. Максимум 1 МБ.
+      Невалидный файл будет удалён с сервера.</div>
+    <button type="submit" class="btn btn-primary">Загрузить</button>
+  </form>
+</div></div>
 {% endblock %}
