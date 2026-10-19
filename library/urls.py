@@ -8,4 +8,5 @@ urlpatterns = [
     path("upload/", views.upload, name="upload"),
     path("download/<str:file_id>/", views.download, name="download"),
     path("export/", views.export_all, name="export_all"),
+    path("db/search/", views.book_search, name="book_search"),
 ]

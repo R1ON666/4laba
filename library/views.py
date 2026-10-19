@@ -3,9 +3,11 @@ import json
 from django.conf import settings
 from django.contrib import messages
 from django.db import IntegrityError
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.http import require_GET
 
 from . import storage
 from .forms import AddBookForm, UploadForm
@@ -89,3 +91,18 @@ def export_all(request):
     resp = HttpResponse(body, content_type="application/json; charset=utf-8")
     resp["Content-Disposition"] = 'attachment; filename="all_books.json"'
     return resp
+
+
+SEARCH_FIELDS = ("title", "author", "isbn", "genre", "description")
+
+
+@require_GET
+def book_search(request):
+    """AJAX-поиск по текстовым полям. Возвращает JSON: количество и готовый HTML строк таблицы."""
+    query = " ".join(request.GET.get("q", "")[:100].split()).casefold()
+    books = list(Book.objects.all())
+    if query:
+        # SQLite сравнивает без учёта регистра только латиницу, поэтому фильтруем через casefold()
+        books = [b for b in books if any(query in getattr(b, f).casefold() for f in SEARCH_FIELDS)]
+    html = render_to_string("library/_db_rows.html", {"books": books}, request=request)
+    return JsonResponse({"count": len(books), "html": html})
