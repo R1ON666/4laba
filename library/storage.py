@@ -7,7 +7,7 @@ import uuid
 
 from django.conf import settings
 
-from forms import BookForm
+from .forms import BookForm
 
 FILE_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 

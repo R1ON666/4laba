@@ -5,14 +5,14 @@ from django.contrib import messages
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import redirect, render
 
-import storage
-from forms import BookForm, UploadForm
+from . import storage
+from .forms import BookForm, UploadForm
 
 
 def index(request):
     files = storage.list_book_files()
     total = sum(len(f["books"]) for f in files)
-    return render(request, "index.html", {"files": files, "total_books": total})
+    return render(request, "library/index.html", {"files": files, "total_books": total})
 
 
 def add_book(request):
@@ -21,7 +21,7 @@ def add_book(request):
         storage.save_books([form.cleaned_data])
         messages.success(request, "Книга сохранена в JSON-файл.")
         return redirect("index")
-    return render(request, "add.html", {"form": form})
+    return render(request, "library/add.html", {"form": form})
 
 
 def upload(request):
@@ -40,7 +40,7 @@ def upload(request):
         else:
             messages.success(request, f"Файл загружен. Книг в файле: {len(books)}.")
             return redirect("index")
-    return render(request, "upload.html", {"form": form})
+    return render(request, "library/upload.html", {"form": form})
 
 
 def download(request, file_id):
