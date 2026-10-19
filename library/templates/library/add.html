@@ -6,7 +6,21 @@
   <form method="post" novalidate>
     {% csrf_token %}
     {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
-    {% for field in form %}{% include "library/_field.html" %}{% endfor %}
+
+    <div class="mb-4">
+      <div class="form-label fw-semibold">{{ form.destination.label }}</div>
+      {% for radio in form.destination %}
+        <div class="form-check form-check-inline">
+          {{ radio.tag }}
+          <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+        </div>
+      {% endfor %}
+      {% for error in form.destination.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+    </div>
+
+    {% for field in form %}
+      {% if field.name != "destination" %}{% include "library/_field.html" %}{% endif %}
+    {% endfor %}
     <button type="submit" class="btn btn-primary">Сохранить</button>
   </form>
 </div></div>

@@ -6,9 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 
-GENRES = ["Роман", "Фантастика", "Детектив", "Фэнтези", "Научная литература",
-          "Биография", "Поэзия", "История", "Другое"]
-
+from .models import GENRE_CHOICES
 
 def validate_isbn(value):
     """Проверка ISBN-10 / ISBN-13 с контрольной суммой (дефисы и пробелы допустимы)."""
@@ -46,7 +44,7 @@ class BookForm(BootstrapMixin, forms.Form):
     year = forms.IntegerField(label="Год издания", min_value=1000)
     isbn = forms.CharField(label="ISBN", max_length=20, validators=[validate_isbn],
                            help_text="Например: 978-5-17-090333-7 или 0-306-40615-2")
-    genre = forms.ChoiceField(label="Жанр", choices=[(g, g) for g in GENRES])
+    genre = forms.ChoiceField(label="Жанр", choices=GENRE_CHOICES)
     pages = forms.IntegerField(label="Количество страниц", min_value=1, max_value=10000)
     description = forms.CharField(label="Описание", max_length=2000, required=False,
                                   strip=True, widget=forms.Textarea(attrs={"rows": 4}))
@@ -58,7 +56,20 @@ class BookForm(BootstrapMixin, forms.Form):
         return year
 
     def clean_isbn(self):
-        return re.sub(r"\s", "", self.cleaned_data["isbn"])
+        return re.sub(r"[-\s]", "", self.cleaned_data["isbn"]).upper()   # нормализованный вид для сравнения дубликатов
+
+
+DESTINATIONS = [
+    ("db", "База данных (SQLite)"),
+    ("json", "Файл JSON"),
+]
+
+
+class AddBookForm(BookForm):
+    """Форма добавления: та же книга + выбор, куда сохранить."""
+    destination = forms.ChoiceField(label="Куда сохранить", choices=DESTINATIONS,
+                                    initial="db", widget=forms.RadioSelect)
+    field_order = ["destination"]
 
 
 class UploadForm(BootstrapMixin, forms.Form):

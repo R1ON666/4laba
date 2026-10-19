@@ -2,11 +2,15 @@ import json
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import IntegrityError
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from . import storage
-from .forms import BookForm, UploadForm
+from .forms import AddBookForm, UploadForm
+from .models import Book
+from .services import duplicate_message, find_duplicate
 
 
 def index(request):
@@ -16,11 +20,26 @@ def index(request):
 
 
 def add_book(request):
-    form = BookForm(request.POST or None)
+    form = AddBookForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        storage.save_books([form.cleaned_data])
-        messages.success(request, "Книга сохранена в JSON-файл.")
-        return redirect("index")
+        data = {k: v for k, v in form.cleaned_data.items() if k != "destination"}
+        if form.cleaned_data["destination"] == "db":
+            duplicate = find_duplicate(data)
+            if duplicate:
+                # дубликат: не сохраняем, остаёмся на форме с введёнными данными
+                messages.warning(request, duplicate_message(duplicate))
+            else:
+                try:
+                    Book.objects.create(**data)
+                except IntegrityError:   # одновременный запрос успел добавить такой же ISBN
+                    messages.warning(request, "Книга с таким ISBN уже есть в базе данных. Запись не добавлена.")
+                else:
+                    messages.success(request, "Книга сохранена в базу данных.")
+                    return redirect(f"{reverse('index')}?source=db")
+        else:
+            storage.save_books([data])
+            messages.success(request, "Книга сохранена в JSON-файл.")
+            return redirect(f"{reverse('index')}?source=files")
     return render(request, "library/add.html", {"form": form})
 
 
