@@ -1,0 +1,10 @@
+{
+  "books": [
+    {"title": "Мастер и Маргарита", "author": "М. Булгаков", "year": 1967, "isbn": "978-5-17-090333-7",
+     "genre": "Роман", "pages": 480, "description": "Роман о визите дьявола в Москву."},
+    {"title": "Руслан и Людмила", "author": "А. Пушкин", "year": 1820, "isbn": "978-3-16-148410-0",
+     "genre": "Поэзия", "pages": 160, "description": ""},
+    {"title": "A Brief History of Time", "author": "S. Hawking", "year": 1988, "isbn": "978-0-306-40615-7",
+     "genre": "Научная литература", "pages": 256, "description": ""}
+  ]
+}
